@@ -9,11 +9,15 @@
 #include <cstdlib>
 #include <chrono>
 #include <future>
+#include <limits>
 
 using namespace std;
 
 using xxx = unsigned int32_t;
 using Row = vector<xxx>;
+
+ostream& operator<<(ostream& o, Row row);
+
 vector<Row> init_rows(std::size_t const row_size, xxx const value_count) {
     vector<Row> res;
     Row gen(row_size, 0);
@@ -41,8 +45,8 @@ tuple<xxx,xxx> count_white_blacks(Row const& _lhs,Row const& _rhs,xxx value_coun
         xxx wl = 0;
         xxx wr = 0;
         for (int i = 0; i < _lhs.size(); ++i) {
-            auto const & lhs = _lhs[i];
-            auto const & rhs = _rhs[i];
+            xxx const lhs = _lhs[i];
+            xxx const rhs = _rhs[i];
             if (lhs == num) {
                 if (rhs == lhs) {
                     b += 1;
@@ -69,35 +73,22 @@ void filter(vector<Row>& rows, Row const& crit, xxx w, xxx b, xxx value_count) {
         rows.end());
 }
 
-int ipow(int base, int exp) {
-    int result = 1;
-    for (;;)
-    {
-        if (exp & 1)
-            result *= base;
-        exp >>= 1;
-        if (!exp)
-            break;
-        base *= base;
-    }
-
-    return result;
-}
-
 xxx calc_min_eliminated(vector<Row> const& rows, Row const& row, xxx value_count) {
-    xxx min_eliminated = 0; //ipow(value_count, row.size());
+
+    xxx min_eliminated = std::numeric_limits<xxx>::max() - 1;
     for (int b = 0; b < value_count; ++b) {
         for (int w = 0; w < (value_count - b); ++w) {
             if (w == 1 && b == (row.size() - 1)) {
                 continue;
             }
-            xxx const removed = count_if(rows.begin(), rows.end(),
+            xxx const matching = count_if(rows.begin(), rows.end(),
                 [&row, b, w, value_count](auto const& r) {
                     auto const [b2, w2] = count_white_blacks(r, row, value_count);
                     return b == b2 && w == w2;
                 });
-            xxx score =  rows.size() - removed;
-            min_eliminated = max(score, min_eliminated);
+            xxx score =  rows.size() - matching;
+            
+            min_eliminated = min(score, min_eliminated);
         }
     }
     return min_eliminated;
