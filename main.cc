@@ -75,23 +75,14 @@ void filter(vector<Row>& rows, Row const& crit, xxx w, xxx b, xxx value_count) {
 
 xxx calc_min_eliminated(vector<Row> const& rows, Row const& row, xxx value_count) {
 
-    xxx min_eliminated = std::numeric_limits<xxx>::max() - 1;
-    for (int b = 0; b < value_count; ++b) {
-        for (int w = 0; w < (value_count - b); ++w) {
-            if (w == 1 && b == (row.size() - 1)) {
-                continue;
-            }
-            xxx const matching = count_if(rows.begin(), rows.end(),
-                [&row, b, w, value_count](auto const& r) {
-                    auto const [b2, w2] = count_white_blacks(r, row, value_count);
-                    return b == b2 && w == w2;
-                });
-            xxx score =  rows.size() - matching;
-            
-            min_eliminated = min(score, min_eliminated);
-        }
+    vector<xxx> res ((((row.size() + 1) * row.size() + 3) / 2), rows.size());
+
+    for (auto const& r: rows) {
+        auto const [b, w] = count_white_blacks(r, row, value_count);
+        auto const n = row.size() - b;
+        res[((n * (n - 1)) / 2 + w)] -= 1;
     }
-    return min_eliminated;
+    return *min_element(res.begin(), res.end());
 }
 
 Row const& best(vector<Row> const& rows, xxx value_count) {
