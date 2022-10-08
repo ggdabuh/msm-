@@ -10,6 +10,7 @@
 #include <chrono>
 #include <future>
 #include <limits>
+#include <execution>
 
 using namespace std;
 
@@ -94,23 +95,20 @@ Row const& best(vector<Row> const& rows, xxx value_count) {
             best = make_tuple(n, &row);
         }
     }
-    if(!get<1>(best)) abort();
     return *get<1>(best);
 }
 
 Row const& best2(vector<Row> const& rows, xxx value_count) {
     tuple <xxx, Row const*> best {0, nullptr};
 
-    vector<future<tuple <xxx, Row const*>>> f {rows.size()};
-    transform(rows.begin(), rows.end(),
+    vector<tuple <xxx, Row const*>> f {rows.size()};
+    transform(std::execution::par,
+        rows.begin(), rows.end(),
         f.begin(), [&rows, value_count](auto & row) {
-            return async([&rows, &row, value_count]() {
-                auto const n = calc_min_eliminated(rows, row, value_count);
-                return make_tuple(n, &row);
-            });
+            const xxx n = calc_min_eliminated(rows, row, value_count);
+            return make_tuple(n, &row);
         });
-    for(auto & fut: f) {
-        auto [n, row] = fut.get();
+    for(auto [n, row] : f) {
         if (get<0>(best) < n) {
             best = make_tuple(n, row);
         }
