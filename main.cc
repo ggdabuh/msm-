@@ -89,18 +89,6 @@ xxx calc_min_eliminated(vector<Row> const& rows, Row const& row, xxx value_count
 Row const& best(vector<Row> const& rows, xxx value_count) {
     tuple <xxx, Row const*> best {0, nullptr};
 
-    for(auto const& row: rows) {
-        auto const n = calc_min_eliminated(rows, row, value_count);
-        if (get<0>(best) < n) {
-            best = make_tuple(n, &row);
-        }
-    }
-    return *get<1>(best);
-}
-
-Row const& best2(vector<Row> const& rows, xxx value_count) {
-    tuple <xxx, Row const*> best {0, nullptr};
-
     vector<tuple <xxx, Row const*>> f {rows.size()};
     transform(std::execution::par,
         rows.begin(), rows.end(),
@@ -137,7 +125,6 @@ int main() {
         abort();
     }
 
-
     cout << "values count:\n";
     int value_count;
     cin >> value_count;
@@ -163,7 +150,7 @@ int main() {
             break;
         }
         auto now = chrono::steady_clock::now();
-        row = best2(rows, value_count);
+        row = best(rows, value_count);
         auto end = chrono::steady_clock::now();
         chrono::duration<double, milli> diff = end - now;
         std::cout << "elapsed " << diff.count() << " ms\n";
